@@ -1,16 +1,10 @@
-variable "user_name" {
-  description = "Login name for the OTC Terraform provider"
-  type        = string
-}
-
 variable "access_key" {
-  description = "Access key for var.user_name"
+  description = "Access key for OTC user"
   type        = string
   sensitive   = true
 }
-
 variable "secret_key" {
-  description = "Secret key for var.user_name"
+  description = "Secret key for OTC user"
   type        = string
   sensitive   = true
 }
