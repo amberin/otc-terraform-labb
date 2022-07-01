@@ -12,18 +12,17 @@ provider "opentelekomcloud" {
   access_key  = var.access_key
   secret_key  = var.secret_key
   tenant_name = "eu-de_test"
-#  domain_name = "???"
   auth_url    = "https://iam.eu-de.otc.t-systems.com/v3"
 }
 
-resource "opentelekomcloud_networking_network_v2" "network_1" {
-  name           = "network_1"
-  admin_state_up = "true"
+resource "opentelekomcloud_vpc_v1" "network_1" {
+  name = "network_1"
+  cidr = "10.0.10.0/24"
 }
 
-resource "opentelekomcloud_networking_subnet_v2" "subnet_1" {
+resource "opentelekomcloud_vpc_subnet_v1" "subnet_1" {
   name       = "subnet_1"
-  network_id = opentelekomcloud_networking_network_v2.network_1.id
-  cidr       = "10.0.0.0/24"
-  ip_version = 4
+  cidr       = "10.0.10.0/24"
+  vpc_id     = opentelekomcloud_vpc_v1.network_1.id
+  gateway_ip = "10.0.10.1"
 }
