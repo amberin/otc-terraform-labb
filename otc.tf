@@ -16,10 +16,10 @@ terraform {
 }
 
 provider "opentelekomcloud" {
-  user_name   = "terraform-test"
+  user_name   = "terraform-${terraform.workspace}"
   access_key  = var.otc_access_key
   secret_key  = var.otc_secret_key
-  tenant_name = "eu-de_test"
+  tenant_name = "eu-de_${terraform.workspace}"
   auth_url    = "https://iam.eu-de.otc.t-systems.com/v3"
 }
 
