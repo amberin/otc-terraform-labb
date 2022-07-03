@@ -5,13 +5,21 @@ terraform {
       version = "1.29.8"
     }
   }
+  backend "s3" {
+    endpoint                    = "obs.eu-de.otc.t-systems.com"
+    region                      = "eu-de"
+    bucket                      = "victortfstate" # name of OBS bucket
+    key                         = "statefile"     # statefile filename in OBS bucket
+    skip_region_validation      = true
+    skip_credentials_validation = true
+  }
 }
 
 provider "opentelekomcloud" {
-  user_name   = "terraform-${terraform.workspace}"
-  access_key  = var.access_key
-  secret_key  = var.secret_key
-  tenant_name = "eu-de_${terraform.workspace}"
+  user_name   = "terraform-test"
+  access_key  = var.otc_access_key
+  secret_key  = var.otc_secret_key
+  tenant_name = "eu-de_test"
   auth_url    = "https://iam.eu-de.otc.t-systems.com/v3"
 }
 
