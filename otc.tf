@@ -24,26 +24,38 @@ provider "opentelekomcloud" {
   auth_url    = "https://iam.eu-de.otc.t-systems.com/v3"
 }
 
-resource "opentelekomcloud_vpc_v1" "network_1" {
-  name = "network_1"
-  cidr = "10.0.0.0/24"
+resource "opentelekomcloud_vpc_v1" "k8s" {
+  name = "k8s"
+  cidr = "10.10.0.0/24"
 }
 
-resource "opentelekomcloud_vpc_subnet_v1" "subnet_1" {
-  name       = "subnet_1"
-  cidr       = "10.0.0.0/24"
-  vpc_id     = opentelekomcloud_vpc_v1.network_1.id
-  gateway_ip = "10.0.0.1"
+resource "opentelekomcloud_vpc_subnet_v1" "k8s" {
+  name       = "k8s"
+  cidr       = "10.10.0.0/24"
+  vpc_id     = opentelekomcloud_vpc_v1.k8s.id
+  gateway_ip = "10.10.0.1"
 }
 
-resource "opentelekomcloud_cce_cluster_v3" "cluster1" {
-  name        = "cluster1"
+resource "opentelekomcloud_vpc_v1" "vms" {
+  name = "vms"
+  cidr = "10.20.0.0/24"
+}
+
+resource "opentelekomcloud_vpc_subnet_v1" "vms" {
+  name       = "vms"
+  cidr       = "10.20.0.0/24"
+  vpc_id     = opentelekomcloud_vpc_v1.vms.id
+  gateway_ip = "10.20.0.1"
+}
+
+resource "opentelekomcloud_cce_cluster_v3" "k8s-cluster-1" {
+  name        = "k8s-cluster-1"
   description = "My toy cluster"
 
   cluster_type           = "VirtualMachine"
   flavor_id              = "cce.s1.small"
-  vpc_id                 = opentelekomcloud_vpc_v1.network_1.id
-  subnet_id              = opentelekomcloud_vpc_subnet_v1.subnet_1.id
+  vpc_id                 = opentelekomcloud_vpc_v1.k8s.id
+  subnet_id              = opentelekomcloud_vpc_subnet_v1.k8s.id
   container_network_type = "overlay_l2"
 }
 
@@ -57,9 +69,9 @@ resource "opentelekomcloud_compute_keypair_v2" "victors" {
   region      = "eu-de"
 }
 
-resource "opentelekomcloud_cce_node_v3" "node1" {
-  name              = "node1"
-  cluster_id        = opentelekomcloud_cce_cluster_v3.cluster1.id
+resource "opentelekomcloud_cce_node_v3" "k8s-worker-1" {
+  name              = "k8s-worker-1"
+  cluster_id        = opentelekomcloud_cce_cluster_v3.k8s-cluster-1.id
   availability_zone = "eu-de-02"
 
   flavor_id = "s2.large.2"
