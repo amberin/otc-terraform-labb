@@ -9,22 +9,24 @@ filerna förstås inte checkas in i source control, och måste förvaras
 säkert.
 
 Eftersom det aktiva workspacet avgör vilken användare och vilket
-projekt i OTC som används, så är risken liten för att råka göra
+projekt i OTC som används, så är det osannolikt att man råkar göra
 förändringar i prod av misstag. Även om man skulle råka glömma att man
 har bytt workspace till prod, så kommer de credentials som för
 närvarande är satta inte att fungera ihop med fel användare och
 projekt.
 
-# Autentisering för state file backend
+# Inloggningsuppgifter för state file backend
 
 En nackdel med att använda OBS bucket för att lagra state file är att
-Terraform inte har någon definierad storage backend för OBS. Man måste
-lura Terraform att det är en AWS S3-bucket som man använder. Det
-innebär att access key och secret key för auth mot bucket måste sättas
-med andra miljövariabler som läses av Terraforms S3-klient.
+Terraform inte har formellt stöd för OBS som storage backend. Man
+måste lura Terraform att det är en AWS S3-bucket som man använder (se
+konfigurationsavsnittet terraform.backend.s3). Det innebär att access key
+och secret key för auth mot bucket måste sättas med andra
+miljövariabler som läses av Terraforms S3-klient.
 
 Sätt därför följande miljövariabler i ditt skal med värdet på access
-key och secret key för antingen test- eller prod-användaren:
+key och secret key för antingen test- eller prod-användaren (samma
+state-fil används av båda projekten/användarna).
 
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
@@ -36,8 +38,11 @@ Följande steg är nödvändiga med ett nytt OTC-konto:
 1. IAM-inställningar
     1. Skapa projekten "test", "prod" i relevant region.
     1. Skapa user groups "terraform-test", "terraform-prod".
-    1. Tilldela user groups relevanta behörigheter i respektive
-       projekt (t ex "CCE Administrator", "VPC Admin")
+    1. Tilldela dina user groups följande behörigheter i respektive
+       projekt:
+        - "VPC Admin"
+        - "CCE Administrator"
+        - "CCE Admin"
     1. Skapa användarna "terraform-test", "terraform-prod" och knyt till resp user group.
     1. Skapa access keys för de två användarna, spara secret keys på säker plats.
 1. Möjliggör remote storage av state file
@@ -53,7 +58,7 @@ Följande steg är nödvändiga med ett nytt OTC-konto:
 1. `terraform workspace new test`
 1. `terraform workspace select test`
 1. I OTC:s webbkonsol, gå in på service "CCE" och påbörja guiden för
-   att starta ett kluster för ett givet projekt/region. Då får du möjlighet att ge projektet
-   tillgång till alla resurser som krävs för att administrera
-   CCE-kluster.
+   att starta ett kluster för ett givet projekt/region. Då får du
+   möjlighet att ge projektet behörighet till alla resurser som krävs
+   för att administrera CCE-kluster.
 1. `terraform plan` osv
