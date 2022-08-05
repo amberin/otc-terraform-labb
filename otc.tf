@@ -36,15 +36,15 @@ resource "opentelekomcloud_vpc_subnet_v1" "k8s" {
   gateway_ip = "10.10.0.1"
 }
 
-resource "opentelekomcloud_vpc_v1" "vms" {
-  name = "vms"
+resource "opentelekomcloud_vpc_v1" "eventstore" {
+  name = "eventstore"
   cidr = "10.20.0.0/24"
 }
 
-resource "opentelekomcloud_vpc_subnet_v1" "vms" {
-  name       = "vms"
+resource "opentelekomcloud_vpc_subnet_v1" "eventstore" {
+  name       = "eventstore"
   cidr       = "10.20.0.0/24"
-  vpc_id     = opentelekomcloud_vpc_v1.vms.id
+  vpc_id     = opentelekomcloud_vpc_v1.eventstore.id
   gateway_ip = "10.20.0.1"
 }
 
@@ -69,8 +69,8 @@ resource "opentelekomcloud_compute_keypair_v2" "victors" {
   region      = "eu-de"
 }
 
-resource "opentelekomcloud_cce_node_v3" "k8s-worker-1" {
-  name              = "k8s-worker-1"
+resource "opentelekomcloud_cce_node_v3" "k8s-node-1" {
+  name              = "k8s-node-1"
   cluster_id        = opentelekomcloud_cce_cluster_v3.k8s-cluster-1.id
   availability_zone = "eu-de-02"
 
@@ -79,7 +79,8 @@ resource "opentelekomcloud_cce_node_v3" "k8s-worker-1" {
   # user "linux".
   key_pair  = opentelekomcloud_compute_keypair_v2.victors.id
 
-  bandwidth_size = 100
+  # In prod, set bandwidth_size to "100". Otherwise, set it to "1".
+  bandwidth_size = terraform.workspace == "prod" ? 100 : 1
 
   root_volume {
     size       = 40
