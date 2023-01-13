@@ -1,18 +1,18 @@
+resource "opentelekomcloud_vpc_v1" "victororg" {
+  name = "victororg"
+  cidr = "10.0.0.0/16"
+}
+
 locals {
   es_node_count = terraform.workspace == "prod" ? 3 : 3
   es_private_cluster_name = "cluster.eventstore.private"
 }
 
-resource "opentelekomcloud_vpc_v1" "eventstore" {
-  name = "eventstore"
-  cidr = "10.10.0.0/24"
-}
-
 resource "opentelekomcloud_vpc_subnet_v1" "eventstore" {
   name       = "eventstore"
-  cidr       = "10.10.0.0/24"
-  vpc_id     = opentelekomcloud_vpc_v1.eventstore.id
-  gateway_ip = "10.10.0.1"
+  cidr       = "10.0.10.0/24"
+  vpc_id     = opentelekomcloud_vpc_v1.victororg.id
+  gateway_ip = "10.0.10.1"
   dns_list   = local.otc_dns_servers
 }
 
@@ -29,13 +29,13 @@ resource "opentelekomcloud_networking_secgroup_rule_v2" "eventstore_internal" {
   security_group_id = opentelekomcloud_networking_secgroup_v2.eventstore.id
 }
 
-resource "opentelekomcloud_networking_secgroup_rule_v2" "eventstore_from_kubernetes" {
-  description       = "Allow all traffic from Kubernetes cluster(s)"
-  direction         = "ingress"
-  ethertype         = "IPv4"
-  remote_group_id   = opentelekomcloud_networking_secgroup_v2.kubernetes.id
-  security_group_id = opentelekomcloud_networking_secgroup_v2.eventstore.id
-}
+#resource "opentelekomcloud_networking_secgroup_rule_v2" "eventstore_from_kubernetes" {
+#  description       = "Allow all traffic from Kubernetes cluster(s)"
+#  direction         = "ingress"
+#  ethertype         = "IPv4"
+#  remote_group_id   = opentelekomcloud_networking_secgroup_v2.kubernetes.id
+#  security_group_id = opentelekomcloud_networking_secgroup_v2.eventstore.id
+#}
 
 resource "opentelekomcloud_networking_secgroup_rule_v2" "eventstore_ping" {
   description       = "Allow ping from anywhere"
@@ -94,33 +94,33 @@ resource "opentelekomcloud_cbr_policy_v3" "eventstore_data" {
     "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR;BYHOUR=19;BYMINUTE=00"
   ]
 }
-resource "opentelekomcloud_cbr_vault_v3" "eventstore_data" {
-  name = "eventstore_data"
-  auto_bind = false
-  billing {
-    size          = terraform.workspace == "prod" ? 500 : 50 # TODO: Decide on proper backup space for prod
-    object_type   = "disk"
-    protect_type  = "backup"
-    charging_mode = "post_paid"
-  }
-  backup_policy_id = opentelekomcloud_cbr_policy_v3.eventstore_data.id
-  dynamic "resource" {
-    for_each = opentelekomcloud_blockstorage_volume_v2.eventstore_data[*]
-    content {
-      type = "OS::Cinder::Volume"
-      id   = resource.value["id"]
-    }
-  }
-}
+#resource "opentelekomcloud_cbr_vault_v3" "eventstore_data" {
+#  name = "eventstore_data"
+#  auto_bind = false
+#  billing {
+#    size          = terraform.workspace == "prod" ? 500 : 50 # TODO: Decide on proper backup space for prod
+#    object_type   = "disk"
+#    protect_type  = "backup"
+#    charging_mode = "post_paid"
+#  }
+#  backup_policy_id = opentelekomcloud_cbr_policy_v3.eventstore_data.id
+#  dynamic "resource" {
+#    for_each = opentelekomcloud_blockstorage_volume_v2.eventstore_data[*]
+#    content {
+#      type = "OS::Cinder::Volume"
+#      id   = resource.value["id"]
+#    }
+#  }
+#}
 
-# ES node data disks
-resource "opentelekomcloud_blockstorage_volume_v2" "eventstore_data" {
-  count       = local.es_node_count
-  name        = "eventstore_data_node${count.index + 1}"
-  volume_type = terraform.workspace == "prod" ? "SSD" : "SATA"
-  # Use 20 GB disk in prod, 10 GB in dev
-  size        = terraform.workspace == "prod" ? 20 : 10
-}
+## ES node data disks
+#resource "opentelekomcloud_blockstorage_volume_v2" "eventstore_data" {
+#  count       = local.es_node_count
+#  name        = "eventstore_data_node${count.index + 1}"
+#  volume_type = terraform.workspace == "prod" ? "SSD" : "SATA"
+#  # Use 20 GB disk in prod, 10 GB in dev
+#  size        = terraform.workspace == "prod" ? 20 : 10
+#}
 # ES node cloud user data
 data "template_cloudinit_config" "eventstore" {
   part {
@@ -155,12 +155,12 @@ resource "opentelekomcloud_compute_instance_v2" "eventstore" {
   image_name          = "Standard_Ubuntu_20.04_V100_latest"
   # In workspace "prod", allocate 4 GB RAM and some more bandwidth
   flavor_id           = terraform.workspace == "prod" ? "s3.medium.4" : "s2.medium.2"
-  key_pair            = "marcus"
+  key_pair            = "victors"
   security_groups     = ["eventstore"]
   # Stop the OS gracefully before destroy, to increase the likelihood that the
   # data disk is left in a good state.
   stop_before_destroy = true 
-  availability_zone   = opentelekomcloud_cce_node_v3.cluster1-worker1.availability_zone
+  #availability_zone   = opentelekomcloud_cce_node_v3.cluster1-worker1.availability_zone
   network {
     uuid = opentelekomcloud_vpc_subnet_v1.eventstore.id
   }
@@ -175,12 +175,12 @@ resource "opentelekomcloud_compute_instance_v2" "eventstore" {
     ]
   }
 }
-# Attach data disks to nodes
-resource "opentelekomcloud_compute_volume_attach_v2" "eventstore_data_attach" {
-  count       = local.es_node_count
-  volume_id   = opentelekomcloud_blockstorage_volume_v2.eventstore_data[count.index].id
-  instance_id = opentelekomcloud_compute_instance_v2.eventstore[count.index].id
-}
+## Attach data disks to nodes
+#resource "opentelekomcloud_compute_volume_attach_v2" "eventstore_data_attach" {
+#  count       = local.es_node_count
+#  volume_id   = opentelekomcloud_blockstorage_volume_v2.eventstore_data[count.index].id
+#  instance_id = opentelekomcloud_compute_instance_v2.eventstore[count.index].id
+#}
 # All EventStore nodes need an elastic (public) IP
 resource "opentelekomcloud_vpc_eip_v1" "eventstore" {
   count = local.es_node_count

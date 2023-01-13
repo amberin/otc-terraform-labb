@@ -31,7 +31,7 @@ resource "opentelekomcloud_cce_cluster_v3" "cluster1" {
   eip                    = opentelekomcloud_networking_floatingip_v2.cluster1.address
 }
 
-resource "opentelekomcloud_networking_floatingip_v2" "cluster1-node1" {}
+#resource "opentelekomcloud_networking_floatingip_v2" "cluster1-node1" {}
 
 resource "opentelekomcloud_cce_node_v3" "cluster1-node1" {
   name              = "cluster1-node1"
@@ -44,7 +44,7 @@ resource "opentelekomcloud_cce_node_v3" "cluster1-node1" {
   # user "linux".
   key_pair  = opentelekomcloud_compute_keypair_v2.victors.id
 
-  eip_ids = [opentelekomcloud_networking_floatingip_v2.cluster1-node1.id]
+  #  eip_ids = [opentelekomcloud_networking_floatingip_v2.cluster1-node1.id]
 
   root_volume {
     # Use smallest possible disk size in dev
@@ -76,7 +76,7 @@ resource "opentelekomcloud_vpc_bandwidth_associate_v2" "kubernetes" {
   bandwidth = opentelekomcloud_vpc_bandwidth_v2.kubernetes.id
   floating_ips = [
     opentelekomcloud_networking_floatingip_v2.cluster1.id,
-    opentelekomcloud_networking_floatingip_v2.cluster1-node1.id,
+    #    opentelekomcloud_networking_floatingip_v2.cluster1-node1.id,
     opentelekomcloud_networking_floatingip_v2.loadbalancer1.id
   ]
 }

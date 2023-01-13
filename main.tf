@@ -43,17 +43,17 @@ locals {
   }
 }
 
-## Create private DNS zone for use by all VPCs/subnets
-#resource "opentelekomcloud_dns_zone_v2" "private" {
-#  type  = "private"
-#  name  = "private."
-#  email = "victor.andreasson@b3.se"
-#  ttl   = 300
-#  router {
-#    router_id = opentelekomcloud_vpc_v1.eventstore.id
-#    router_region = local.otc_region
-#  }
-#}
+# Create private DNS zone for use by all VPCs/subnets
+resource "opentelekomcloud_dns_zone_v2" "private" {
+  type  = "private"
+  name  = "private."
+  email = "victor.andreasson@b3.se"
+  ttl   = 300
+  router {
+    router_id = opentelekomcloud_vpc_v1.victororg.id
+    router_region = local.otc_region
+  }
+}
 
 resource "opentelekomcloud_compute_keypair_v2" "victors" {
   name        = "victors"
